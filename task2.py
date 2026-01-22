@@ -1,17 +1,28 @@
+# code for overlapping data 
+from data import OverLappingData
+from sklearn.svm import SVC
+from visual import CreateMargin,CreateScatter
 import numpy as np
-from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.metrics import accuracy_score
-from data import generate_xor_data
-from visual import plot_2d_data
 
-X, y=generate_xor_data(n=200)
+#gen data
+X,y = OverLappingData()
 
-plot_2d_data(X,y,title="XOR Data (Original Space)")
+#create svm obj hardmargin 
+svm_head = SVC(kernel='linear',C=1e6)
+svm_head.fit(X,y)
 
-linear_model=LogisticRegression()
-linear_model.fit(X, y)
-y_pred_linear=linear_model.predict(X)
-linear_accuracy=accuracy_score(y,y_pred_linear)
-print(f"Linear Model Accuracy on XOR Data: {linear_accuracy:.2f}")
-plot_2d_data(X, y_pred_linear, title="XOR Data-Linear Model Predictions")
+w = svm_head.coef_[0]
+b = svm_head.intercept_[0]
+
+x_val = np.linspace(X[:,0].min()-1,X[:,0].max()-1,200)
+y_decision = -(w[0]*x_val+b)/w[1]
+
+y_margin_pos = -(w[0] * x_val+b-1)/w[1]
+y_margin_neg = -(w[0] * x_val+b+1)/w[1]
+
+print(" W ",w)
+print(" b ",b)
+print("number of support vectors",len(svm_head.support_vectors_))
+
+# CreateScatter(X,y)
+CreateMargin(X,y,svm_head,x_val,y_decision,y_margin_neg,y_margin_pos,1e6)
